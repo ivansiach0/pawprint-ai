@@ -2,7 +2,7 @@
 
 Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in [AGENTS.md](AGENTS.md).
 
-- [ ] **01 — Project setup and landing**  
+- [x] **01 — Project setup and landing**\
   Depends on none. Set up Next.js App Router, TypeScript, vanilla-extract, Radix UI Primitives, and ESLint. Build the public landing page with a brief introduction to Pawprint.  
   Verify with a browser smoke test that a signed-out visitor can see the introduction. Check legibility at desktop and mobile widths. Run lint, type checks, and the production build.
 
