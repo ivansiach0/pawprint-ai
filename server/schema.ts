@@ -1,4 +1,5 @@
-import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { boolean, check, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 const date = (name: string) => timestamp(name, { withTimezone: true });
 
@@ -47,3 +48,11 @@ export const verification = pgTable("verification", {
   createdAt: date("created_at").notNull().defaultNow(),
   updatedAt: date("updated_at").notNull().defaultNow(),
 }, (table) => [index("verification_identifier_idx").on(table.identifier)]);
+
+export const pet = pgTable("pet", {
+  id: integer("id").primaryKey(),
+  name: text("name").notNull(),
+  species: text("species").notNull(),
+  age: integer("age").notNull(),
+  imageUrl: text("image_url").notNull().unique(),
+}, (table) => [check("pet_age_nonnegative", sql`${table.age} >= 0`)]);

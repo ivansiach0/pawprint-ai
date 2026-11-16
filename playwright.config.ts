@@ -17,7 +17,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "npm run db:migrate && npm run dev:api",
+      command: "npm run db:migrate && npm run db:seed && npm run dev:api",
       url: `${apiOrigin}/health`,
       env: {
         DATABASE_URL: databaseUrl,

@@ -11,10 +11,12 @@ if (!DATABASE_URL || !BETTER_AUTH_URL || !BETTER_AUTH_SECRET) {
   throw new Error("Set DATABASE_URL, BETTER_AUTH_URL, and BETTER_AUTH_SECRET before starting the API.");
 }
 
+const db = drizzle(DATABASE_URL, { schema });
+
 const auth = betterAuth({
   baseURL: BETTER_AUTH_URL,
   secret: BETTER_AUTH_SECRET,
-  database: drizzleAdapter(drizzle(DATABASE_URL, { schema }), {
+  database: drizzleAdapter(db, {
     provider: "pg",
     schema,
   }),
@@ -38,7 +40,8 @@ app.get("/api/discover", async (request, response) => {
     return;
   }
 
-  response.json({ name: session.user.name });
+  const [pet] = await db.select().from(schema.pet).orderBy(schema.pet.id).limit(1);
+  response.json({ pet: pet ?? null });
 });
 
 const port = Number(process.env.PORT ?? 3001);

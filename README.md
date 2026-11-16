@@ -24,14 +24,17 @@ Set `BETTER_AUTH_SECRET` in `.env.local` to the generated value. Adjust `DATABAS
 
 ```sh
 npm run db:migrate
+npm run db:seed
 npm run dev:api
 ```
 
-In another terminal, run `npm run dev` and open [Pawprint](http://localhost:3000). Create an account, reload Discover, and try signing in again from a private browser window.
+In another terminal, run `npm run dev` and open [Pawprint](http://localhost:3000). Create an account and check that Discover shows Luna with her photo, species, and age. Reload to verify the same pet appears. Select **Sign out** and confirm you return to the landing page. Open `/discover` again and confirm you are redirected to **Sign in**.
+
+The seed adds 67 fixed profiles and can be run again without duplicating pets. Discover loads photos from the supplied catalog.
 
 ## Verification
 
-Use a separate disposable database for automated tests. With the Docker container above, create it once with `docker exec pawprint-dev-db createdb -U pawprint pawprint_test`. The test runner applies migrations and starts both services on loopback.
+Use a separate disposable database for automated tests. With the Docker container above, create it once with `docker exec pawprint-dev-db createdb -U pawprint pawprint_test`. The test runner applies migrations, seeds pets, and starts both services on loopback.
 
 ```sh
 npx playwright install chromium
@@ -41,6 +44,6 @@ npm run typecheck
 npm run build
 ```
 
-The browser tests cover the public homepage, registration, session persistence, and sign-in in desktop and mobile Chromium profiles. They also check that Express rejects a direct request to Discover without a session.
+The browser tests cover the public homepage, registration, session persistence, first pet after reload, sign-in, and sign-out in desktop and mobile Chromium profiles. They also check that Express rejects a direct request to Discover without a session.
 
 The landing photo comes from the supplied [pet catalog](https://pets-images.dev-apis.com/pets/dog1.jpg).

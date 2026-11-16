@@ -1,13 +1,18 @@
 import type { NextRequest } from "next/server";
 
-const authActions = new Set(["sign-in", "sign-up"]);
+const authPaths = new Map([
+  ["sign-in", "/api/auth/sign-in/email"],
+  ["sign-up", "/api/auth/sign-up/email"],
+  ["sign-out", "/api/auth/sign-out"],
+]);
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ action: string }> },
 ) {
   const { action } = await params;
-  if (!authActions.has(action)) {
+  const authPath = authPaths.get(action);
+  if (!authPath) {
     return new Response(null, { status: 404 });
   }
 
@@ -22,7 +27,7 @@ export async function POST(
   }
 
   try {
-    const upstream = await fetch(new URL(`/api/auth/${action}/email`, apiOrigin), {
+    const upstream = await fetch(new URL(authPath, apiOrigin), {
       method: "POST",
       headers: {
         "Content-Type": request.headers.get("content-type") ?? "application/json",
