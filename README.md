@@ -52,3 +52,5 @@ npm run build
 The browser tests cover the public homepage, registration, session persistence, first pet after reload, sign-in, and sign-out in desktop and mobile Chromium profiles. They also check that Express rejects a direct request to Discover without a session.
 
 The landing photo comes from the supplied [pet catalog](https://pets-images.dev-apis.com/pets/dog1.jpg).
+
+Playwright saves screenshots for failed tests in `test-results/`.

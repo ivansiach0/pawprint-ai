@@ -53,3 +53,30 @@ test("pass and save persist without affecting another account", async ({ page, b
     await otherAccount.close();
   }
 });
+
+test("Explore again restores passed pets in order and keeps saved pets", async ({ page }) => {
+  await register(page);
+
+  // Prepare the end of the round through the authenticated Express API.
+  for (let petId = 1; petId <= 67; petId += 1) {
+    const response = await page.request.post("http://127.0.0.1:3101/api/discover/decisions", {
+      data: { petId, choice: petId === 1 || petId === 3 ? "pass" : "save" },
+    });
+    expect(response.status()).toBe(204);
+  }
+
+  await page.reload();
+  await expect(page.getByText("You’ve seen all the pets", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Explore again" }).click();
+  await expect(page.getByRole("heading", { name: "Luna" })).toBeVisible();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Bella" })).toBeVisible();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("You’ve saved all available pets", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Explore again" })).toHaveCount(0);
+  await page.getByRole("link", { name: "View Matches" }).click();
+  await expect(page).toHaveURL(/\/matches$/);
+  for (const name of ["Luna", "Milo", "Bella"]) {
+    await expect(page.getByRole("heading", { name, exact: true })).toHaveCount(1);
+  }
+});

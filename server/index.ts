@@ -48,13 +48,36 @@ catalog.use(["/discover", "/matches"], async (request, response, next) => {
   next();
 });
 
+function decisionsFor(userId: string) {
+  return and(eq(swipeDecision.userId, userId), eq(swipeDecision.petId, pet.id));
+}
+
 catalog.get("/discover", async (_request, response) => {
   const userId: string = response.locals.userId;
+  const entries = await db.select({ pet, choice: swipeDecision.choice }).from(pet)
+    .leftJoin(swipeDecision, decisionsFor(userId)).orderBy(pet.id);
+  const nextPet = entries.find((entry) => entry.choice === null)?.pet ?? null;
+  const hasPassedPets = entries.some((entry) => entry.choice === "pass");
+
+  response.json({
+    pet: nextPet,
+    canExploreAgain: nextPet === null && hasPassedPets,
+    allSaved: entries.length > 0 && nextPet === null && !hasPassedPets,
+  });
+});
+
+catalog.post("/discover/explore-again", async (_request, response) => {
+  const userId: string = response.locals.userId;
   const decided = db.select({ petId: swipeDecision.petId }).from(swipeDecision)
-    .where(and(eq(swipeDecision.userId, userId), eq(swipeDecision.petId, pet.id)));
-  const [nextPet] = await db.select().from(pet)
-    .where(notExists(decided)).orderBy(pet.id).limit(1);
-  response.json({ pet: nextPet ?? null });
+    .where(decisionsFor(userId));
+  const undecided = db.select({ id: pet.id }).from(pet).where(notExists(decided));
+
+  await db.delete(swipeDecision).where(and(
+    eq(swipeDecision.userId, userId),
+    eq(swipeDecision.choice, "pass"),
+    notExists(undecided),
+  ));
+  response.sendStatus(204);
 });
 
 catalog.post("/discover/decisions", express.json(), async (request, response) => {

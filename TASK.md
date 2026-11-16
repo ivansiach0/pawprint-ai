@@ -18,7 +18,7 @@ Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in 
   Depends on 03. Add Pass and Save buttons, persist decisions per account, and show the private Matches gallery and its empty state.  
   Verify that decisions survive reload and that a second account sees only its own progress and saved pets.
 
-- [ ] **05 — Finish a round and explore again**  
+- [x] **05 — Finish a round and explore again**\
   Depends on 04. Offer Explore again when a round ends and passed pets remain. Offer View Matches when every pet is saved.  
   Verify that a new round restores only passed pets in their original order and that View Matches opens the saved gallery.
 
