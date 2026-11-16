@@ -34,11 +34,12 @@ export const description = style({ margin: "4px 0 0", fontSize: "1.125rem" });
 export const header = style({
   display: "flex",
   alignItems: "baseline",
+  flexWrap: "wrap",
   justifyContent: "space-between",
   gap: 16,
 });
 
-export const signOutButton = style({
+export const secondaryButton = style({
   padding: "8px 14px",
   border: "1px solid #862e30",
   borderRadius: 8,
@@ -48,4 +49,30 @@ export const signOutButton = style({
   fontWeight: 700,
   cursor: "pointer",
   ":disabled": { opacity: 0.65, cursor: "wait" },
+});
+
+export const navigation = style({
+  display: "flex",
+  alignItems: "baseline",
+  gap: 14,
+});
+
+export const navLink = style({ color: "#862e30", fontWeight: 700 });
+
+export const actions = style({
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: 12,
+  marginTop: 16,
+});
+
+export const galleryPage = style({
+  width: "min(100% - 32px, 900px)",
+  margin: "clamp(24px, 5vw, 64px) auto",
+});
+
+export const gallery = style({
+  display: "grid",
+  gap: 16,
+  gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 245px), 1fr))",
 });

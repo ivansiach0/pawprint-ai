@@ -14,7 +14,7 @@ Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in 
   Depends on 02. Add the pet table, a reproducible seed for the 67 profiles, and a protected catalog endpoint. Show the first pet in Discover with an edge-to-edge photo and add a Sign out button.\
   Verify that running the seed twice leaves exactly 67 profiles and that Discover shows the same first pet after reload. Verify that signing out returns to the landing page and that reopening Discover redirects to Sign in.
 
-- [ ] **04 — Pass, save, and view Matches**  
+- [x] **04 — Pass, save, and view Matches**\
   Depends on 03. Add Pass and Save buttons, persist decisions per account, and show the private Matches gallery and its empty state.  
   Verify that decisions survive reload and that a second account sees only its own progress and saved pets.
 

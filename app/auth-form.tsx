@@ -2,14 +2,19 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, useSyncExternalStore, type FormEvent } from "react";
 import { Label } from "radix-ui";
 import * as styles from "./auth.css";
+
+const subscribeToHydration = () => () => {};
+const clientReady = () => true;
+const serverReady = () => false;
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const hydrated = useSyncExternalStore(subscribeToHydration, clientReady, serverReady);
   const registering = mode === "sign-up";
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -45,7 +50,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     <main className={styles.panel}>
       <Link href="/">Pawprint</Link>
       <h1>{registering ? "Create an account" : "Sign in"}</h1>
-      <form className={styles.form} onSubmit={submit}>
+      <form className={styles.form} method="post" onSubmit={submit}>
         {registering && (
           <div className={styles.field}>
             <Label.Root htmlFor="name">Name</Label.Root>
@@ -63,7 +68,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
             autoComplete={registering ? "new-password" : "current-password"} />
         </div>
         {error && <p role="alert">{error}</p>}
-        <button className={styles.primary} disabled={pending}>
+        <button className={styles.primary} disabled={!hydrated || pending}>
           {registering ? "Create account" : "Sign in"}
         </button>
       </form>

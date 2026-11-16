@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
+import { and, eq, notExists } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import express from "express";
 import * as schema from "./schema";
@@ -31,7 +32,10 @@ app.get("/health", (_request, response) => {
 
 app.all("/api/auth/*action", toNodeHandler(auth));
 
-app.get("/api/discover", async (request, response) => {
+const { pet, swipeDecision } = schema;
+const catalog = express.Router();
+
+catalog.use(["/discover", "/matches"], async (request, response, next) => {
   response.set("Cache-Control", "no-store");
   const session = await auth.api.getSession({ headers: fromNodeHeaders(request.headers) });
 
@@ -40,9 +44,48 @@ app.get("/api/discover", async (request, response) => {
     return;
   }
 
-  const [pet] = await db.select().from(schema.pet).orderBy(schema.pet.id).limit(1);
-  response.json({ pet: pet ?? null });
+  response.locals.userId = session.user.id;
+  next();
 });
+
+catalog.get("/discover", async (_request, response) => {
+  const userId: string = response.locals.userId;
+  const decided = db.select({ petId: swipeDecision.petId }).from(swipeDecision)
+    .where(and(eq(swipeDecision.userId, userId), eq(swipeDecision.petId, pet.id)));
+  const [nextPet] = await db.select().from(pet)
+    .where(notExists(decided)).orderBy(pet.id).limit(1);
+  response.json({ pet: nextPet ?? null });
+});
+
+catalog.post("/discover/decisions", express.json(), async (request, response) => {
+  const { petId, choice } = request.body ?? {};
+  if (!Number.isSafeInteger(petId) || petId < 1 || petId > 2147483647
+    || (choice !== "pass" && choice !== "save")) {
+    response.status(400).json({ error: "Choose a valid pet and decision." });
+    return;
+  }
+
+  const [selectedPet] = await db.select({ id: pet.id }).from(pet).where(eq(pet.id, petId));
+  if (!selectedPet) {
+    response.status(404).json({ error: "Pet not found." });
+    return;
+  }
+
+  const userId: string = response.locals.userId;
+  await db.insert(swipeDecision).values({ userId, petId, choice }).onConflictDoNothing();
+  response.sendStatus(204);
+});
+
+catalog.get("/matches", async (_request, response) => {
+  const userId: string = response.locals.userId;
+  const saved = await db.select({ pet }).from(swipeDecision)
+    .innerJoin(pet, eq(swipeDecision.petId, pet.id))
+    .where(and(eq(swipeDecision.userId, userId), eq(swipeDecision.choice, "save")))
+    .orderBy(pet.id);
+  response.json({ pets: saved.map((entry) => entry.pet) });
+});
+
+app.use("/api", catalog);
 
 const port = Number(process.env.PORT ?? 3001);
 app.listen(port, process.env.API_HOST ?? "127.0.0.1", () => {
