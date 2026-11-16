@@ -69,3 +69,21 @@ export const photoFrame = style({
 });
 
 export const photo = style({ objectFit: "cover" });
+
+export const actions = style({
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: 16,
+});
+
+export const signInLink = style({ color: "#862e30", fontWeight: 700 });
+
+export const signUpLink = style({
+  padding: "10px 16px",
+  borderRadius: 8,
+  background: "#862e30",
+  color: "white",
+  fontWeight: 700,
+  textDecoration: "none",
+});

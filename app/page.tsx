@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import dogPhoto from "../public/images/landing-dog.jpg";
 import * as styles from "./landing.css";
 
@@ -16,6 +17,10 @@ export default function Home() {
           <p className={styles.description}>
             Discover pets and save your favorites in one place.
           </p>
+          <div className={styles.actions}>
+            <Link className={styles.signUpLink} href="/sign-up">Create an account</Link>
+            <Link className={styles.signInLink} href="/sign-in">Sign in</Link>
+          </div>
         </div>
         <div className={styles.photoFrame}>
           <Image
