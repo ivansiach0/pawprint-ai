@@ -22,7 +22,7 @@ Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in 
   Depends on 04. Offer Explore again when a round ends and passed pets remain. Offer View Matches when every pet is saved.  
   Verify that a new round restores only passed pets in their original order and that View Matches opens the saved gallery.
 
-- [ ] **06 — Retry a swipe after a connection failure**  
+- [x] **06 — Retry a swipe after a connection failure**\
   Depends on 04. Keep the card visible and offer Try again when the result is uncertain.  
   Verify retries both before persistence and after a lost response. Discover advances once and Matches contains a single entry for the saved pet.
 
