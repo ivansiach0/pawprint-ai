@@ -6,7 +6,7 @@ Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in 
   Depends on none. Set up Next.js App Router, TypeScript, vanilla-extract, Radix UI Primitives, and ESLint. Build the public landing page with a brief introduction to Pawprint.  
   Verify with a browser smoke test that a signed-out visitor can see the introduction. Check legibility at desktop and mobile widths. Run lint, type checks, and the production build.
 
-- [ ] **02 — Sign up and sign in through the BFF**  
+- [x] **02 — Sign up and sign in through the BFF**\
   Depends on 01. Apply the authentication migrations to an empty development PostgreSQL database. Host Better Auth in Express and relay authentication requests and cookies through Next.js.  
   Verify that email and password registration opens a protected Discover placeholder immediately, the session survives reload, and an existing user can sign in from a fresh browser session. Verify that Express rejects a protected request without a session.
 
