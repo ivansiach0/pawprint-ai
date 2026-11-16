@@ -76,3 +76,12 @@ export const gallery = style({
   gap: 16,
   gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 245px), 1fr))",
 });
+
+export const swipeSurface = style({
+  touchAction: "pan-y pinch-zoom",
+  userSelect: "none",
+  selectors: {
+    '&[data-swipe-enabled="true"]': { cursor: "grab" },
+    '&[data-swipe-enabled="true"]:active': { cursor: "grabbing" },
+  },
+});

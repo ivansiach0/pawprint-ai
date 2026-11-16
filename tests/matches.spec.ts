@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page, type Locator } from "@playwright/test";
 
 async function register(page: Page) {
   await page.goto("/");
@@ -112,3 +112,56 @@ for (const failure of ["before persistence", "after persistence"] as const) {
     await expect(page.getByRole("heading", { name: "Milo", exact: true })).toHaveCount(0);
   });
 }
+
+async function swipe(card: Locator, direction: -1 | 1, touch: boolean) {
+  const page = card.page();
+  await card.scrollIntoViewIfNeeded();
+  const box = await card.boundingBox();
+  if (!box) throw new Error("Expected a visible pet card.");
+
+  const x = Math.round(box.x + box.width / 2);
+  const y = Math.round(box.y + box.height / 2);
+  const end = x + direction * 110;
+  if (!touch) {
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(end, y, { steps: 5 });
+    await page.mouse.up();
+    return;
+  }
+
+  const session = await page.context().newCDPSession(page);
+  try {
+    await session.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+    await session.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: end, y }] });
+    await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  } finally {
+    await session.detach();
+  }
+}
+
+test("decides with gestures and arrows, and retries a failed gesture", async ({ page }, testInfo) => {
+  await register(page);
+  const touch = testInfo.project.name === "mobile";
+  await expect(page.getByRole("button", { name: "Pass", exact: true })).toBeEnabled();
+  await swipe(page.getByRole("article"), -1, touch);
+  await expect(page.getByRole("heading", { name: "Milo" })).toBeVisible();
+
+  await page.route("**/api/discover/decisions", (route) => route.abort("connectionreset"), { times: 1 });
+  await swipe(page.getByRole("article"), 1, touch);
+  await expect(page.getByRole("heading", { name: "Milo" })).toBeVisible();
+  await page.getByRole("button", { name: "Try again" }).click();
+  await expect(page.getByRole("heading", { name: "Bella" })).toBeVisible();
+
+  await expect(page.getByRole("button", { name: "Pass", exact: true })).toBeEnabled();
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByRole("heading", { name: "Max" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeEnabled();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("heading", { name: "Daisy" })).toBeVisible();
+
+  await page.getByRole("link", { name: "Matches", exact: true }).click();
+  await expect(page.getByRole("article")).toHaveCount(2);
+  await expect(page.getByRole("heading", { name: "Milo" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Max" })).toBeVisible();
+});
