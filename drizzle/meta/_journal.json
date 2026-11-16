@@ -8,6 +8,13 @@
       "when": 1794609364016,
       "tag": "0000_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794847964147,
+      "tag": "0001_pet_catalog",
+      "breakpoints": true
     }
   ]
 }

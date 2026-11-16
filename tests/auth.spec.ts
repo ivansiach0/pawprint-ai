@@ -16,8 +16,15 @@ test("a visitor can register and return to Discover with the same account", asyn
   await expect(page).toHaveURL(/\/discover$/);
   await expect(page.getByRole("heading", { name: "Discover" })).toBeVisible();
 
+  await expect(page.getByRole("heading", { name: "Luna" })).toBeVisible();
+  const photo = page.getByRole("img", { name: "Luna" });
+  await expect(photo).toBeVisible();
+  await expect(photo).toHaveAttribute("src", /dog1\.jpg/);
+  await expect.poll(() => photo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Discover" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Luna" })).toBeVisible();
+  await expect(photo).toHaveAttribute("src", /dog1\.jpg/);
 
   const freshPage = await browser.newPage();
   try {
@@ -30,6 +37,13 @@ test("a visitor can register and return to Discover with the same account", asyn
   } finally {
     await freshPage.close();
   }
+
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(new URL("/", page.url()).href);
+  await page.goto("/discover");
+  await expect(page).toHaveURL(/\/sign-in$/);
+  await page.reload();
+  await expect(page).toHaveURL(/\/sign-in$/);
 });
 
 test("Express rejects Discover requests without a session", async ({ request }) => {

@@ -13,7 +13,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "playwright test",
     "dev:api": "node --env-file-if-exists=.env.local --import tsx server/index.ts",
-    "db:migrate": "node --env-file-if-exists=.env.local node_modules/drizzle-kit/bin.cjs migrate"
+    "db:migrate": "node --env-file-if-exists=.env.local node_modules/drizzle-kit/bin.cjs migrate",
+    "db:seed": "node --env-file-if-exists=.env.local --import tsx server/seed.ts"
   },
   "dependencies": {
     "@vanilla-extract/css": "^1.21.3",

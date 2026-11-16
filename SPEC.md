@@ -8,6 +8,7 @@ Build Pawprint from scratch as a Tinder-inspired pet discovery app. Visitors can
 
 - The public landing page briefly introduces Pawprint and invites visitors to sign in.
 - Users can register and sign in with email and password through Better Auth. Registration gives immediate access to Discover without email verification.
+- Signed-in users can sign out from Discover. Signing out ends the current session and returns to the public landing page. Opening Discover again requires signing in.
 - Discover, swipe decisions, and Matches require a valid session. Express validates the session and identifies the account for each request.
 
 ## Discover

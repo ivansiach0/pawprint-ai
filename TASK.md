@@ -10,9 +10,9 @@ Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in 
   Depends on 01. Apply the authentication migrations to an empty development PostgreSQL database. Host Better Auth in Express and relay authentication requests and cookies through Next.js.  
   Verify that email and password registration opens a protected Discover placeholder immediately, the session survives reload, and an existing user can sign in from a fresh browser session. Verify that Express rejects a protected request without a session.
 
-- [ ] **03 — Seed the catalog and show the first pet**  
-  Depends on 02. Add the pet table, a reproducible seed for the 67 profiles, and a protected catalog endpoint. Show the first pet in Discover with an edge-to-edge photo.  
-  Verify that running the seed twice leaves exactly 67 profiles and that Discover shows the same first pet after reload.
+- [x] **03 — Seed the catalog and show the first pet**\
+  Depends on 02. Add the pet table, a reproducible seed for the 67 profiles, and a protected catalog endpoint. Show the first pet in Discover with an edge-to-edge photo and add a Sign out button.\
+  Verify that running the seed twice leaves exactly 67 profiles and that Discover shows the same first pet after reload. Verify that signing out returns to the landing page and that reopening Discover redirects to Sign in.
 
 - [ ] **04 — Pass, save, and view Matches**  
   Depends on 03. Add Pass and Save buttons, persist decisions per account, and show the private Matches gallery and its empty state.  
