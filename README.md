@@ -30,6 +30,11 @@ npm run dev:api
 
 In another terminal, run `npm run dev` and open [Pawprint](http://localhost:3000). Create an account and check that Discover shows Luna with her photo, species, and age. Reload to verify the same pet appears. Select **Sign out** and confirm you return to the landing page. Open `/discover` again and confirm you are redirected to **Sign in**.
 
+From a fresh account, select **Pass** on Luna and **Save** on Milo.
+Reload Discover and check that Bella is still the next pet.
+Open **Matches** and check that only Milo appears, with his photo, species, and age.
+Register a second account in a private window to verify that it starts at Luna and shows **No matches yet** in Matches.
+
 The seed adds 67 fixed profiles and can be run again without duplicating pets. Discover loads photos from the supplied catalog.
 
 ## Verification
@@ -38,7 +43,7 @@ Use a separate disposable database for automated tests. With the Docker containe
 
 ```sh
 npx playwright install chromium
-TEST_DATABASE_URL=postgresql://pawprint:pawprint_local@127.0.0.1:55432/pawprint_test npm test
+TEST_DATABASE_URL=postgresql://pawprint:pawprint_local@127.0.0.1:55432/pawprint_test npm test -- --workers=1
 npm run lint
 npm run typecheck
 npm run build

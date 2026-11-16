@@ -32,7 +32,7 @@ export function SignOutButton() {
 
   return (
     <div>
-      <button className={styles.signOutButton} type="button" disabled={pending} onClick={signOut}>
+      <button className={styles.secondaryButton} type="button" disabled={pending} onClick={signOut}>
         Sign out
       </button>
       {failed && <p role="alert">Could not sign out. Try again.</p>}

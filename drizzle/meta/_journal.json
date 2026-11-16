@@ -15,6 +15,13 @@
       "when": 1794847964147,
       "tag": "0001_pet_catalog",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794856213890,
+      "tag": "0002_swipe_decision",
+      "breakpoints": true
     }
   ]
 }

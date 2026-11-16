@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, check, index, integer, pgEnum, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 
 const date = (name: string) => timestamp(name, { withTimezone: true });
 
@@ -56,3 +56,11 @@ export const pet = pgTable("pet", {
   age: integer("age").notNull(),
   imageUrl: text("image_url").notNull().unique(),
 }, (table) => [check("pet_age_nonnegative", sql`${table.age} >= 0`)]);
+
+export const swipeChoice = pgEnum("swipe_choice", ["pass", "save"]);
+
+export const swipeDecision = pgTable("swipe_decision", {
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  petId: integer("pet_id").notNull().references(() => pet.id),
+  choice: swipeChoice("choice").notNull(),
+}, (table) => [primaryKey({ columns: [table.userId, table.petId] })]);
