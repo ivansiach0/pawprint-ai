@@ -26,7 +26,7 @@ Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in 
   Depends on 04. Keep the card visible and offer Try again when the result is uncertain.  
   Verify retries both before persistence and after a lost response. Discover advances once and Matches contains a single entry for the saved pet.
 
-- [ ] **07 — Swipe with mouse, touch, and keyboard**  
+- [x] **07 — Swipe with mouse, touch, and keyboard**\
   Depends on 06. Connect mouse drag, touch gestures, and arrow keys to the same behavior as Pass and Save.  
   Verify both directions across inputs and confirm a failed gesture can be retried.
 

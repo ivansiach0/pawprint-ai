@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { fetchCatalog, type Pet } from "../catalog-api";
 import { PetCard } from "../pet-card";
-import { DecisionButtons } from "./decision-buttons";
+import { DiscoverDecision } from "./discover-decision";
 import { ExploreAgain } from "./explore-again";
 import { SignOutButton } from "./sign-out-button";
 import * as styles from "./discover.css";
@@ -28,10 +28,9 @@ export default async function DiscoverPage() {
         </div>
       </div>
       {pet ? (
-        <>
+        <DiscoverDecision key={pet.id} petId={pet.id}>
           <PetCard pet={pet} featured />
-          <DecisionButtons key={pet.id} petId={pet.id} />
-        </>
+        </DiscoverDecision>
       ) : canExploreAgain ? (
         <ExploreAgain />
       ) : allSaved ? (
