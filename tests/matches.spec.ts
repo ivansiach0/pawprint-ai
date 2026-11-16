@@ -80,3 +80,35 @@ test("Explore again restores passed pets in order and keeps saved pets", async (
     await expect(page.getByRole("heading", { name, exact: true })).toHaveCount(1);
   }
 });
+
+for (const failure of ["before persistence", "after persistence"] as const) {
+  test(`retries the same save when the connection fails ${failure}`, async ({ page }) => {
+    await register(page);
+
+    let intercepted = false;
+    await page.route("**/api/discover/decisions", async (route) => {
+      if (intercepted) {
+        await route.continue();
+        return;
+      }
+      intercepted = true;
+      if (failure === "after persistence") {
+        const response = await route.fetch();
+        expect(response.status()).toBe(204);
+      }
+      await route.abort("connectionreset");
+    });
+
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    const retry = page.getByRole("button", { name: "Try again" });
+    await expect(retry).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Luna" })).toBeVisible();
+    await retry.click();
+    await expect(page.getByRole("heading", { name: "Milo" })).toBeVisible();
+    await expect(retry).toHaveCount(0);
+
+    await page.getByRole("link", { name: "Matches", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Luna", exact: true })).toHaveCount(1);
+    await expect(page.getByRole("heading", { name: "Milo", exact: true })).toHaveCount(0);
+  });
+}
