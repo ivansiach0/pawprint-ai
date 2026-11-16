@@ -16,3 +16,11 @@ export async function recordDecision(petId: number, _previous: string, form: For
   revalidatePath("/matches");
   redirect("/discover");
 }
+
+export async function exploreAgain() {
+  const response = await fetchCatalog("/api/discover/explore-again").catch(() => null);
+  if (response?.status === 401) redirect("/sign-in");
+  if (!response?.ok) return "Could not start another round.";
+
+  redirect("/discover");
+}

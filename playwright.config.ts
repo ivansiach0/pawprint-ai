@@ -10,7 +10,7 @@ if (!databaseUrl) {
 
 export default defineConfig({
   testDir: "./tests",
-  use: { baseURL: webOrigin },
+  use: { baseURL: webOrigin, screenshot: "only-on-failure" },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile", use: { ...devices["Pixel 7"] } },

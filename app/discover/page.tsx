@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { fetchCatalog, type Pet } from "../catalog-api";
 import { PetCard } from "../pet-card";
 import { DecisionButtons } from "./decision-buttons";
+import { ExploreAgain } from "./explore-again";
 import { SignOutButton } from "./sign-out-button";
 import * as styles from "./discover.css";
 
@@ -11,7 +12,11 @@ export default async function DiscoverPage() {
   if (response.status === 401) redirect("/sign-in");
   if (!response.ok) throw new Error("Discover is unavailable.");
 
-  const { pet } = (await response.json()) as { pet: Pet | null };
+  const { pet, canExploreAgain, allSaved } = (await response.json()) as {
+    pet: Pet | null;
+    canExploreAgain: boolean;
+    allSaved: boolean;
+  };
 
   return (
     <main className={styles.page}>
@@ -27,6 +32,13 @@ export default async function DiscoverPage() {
           <PetCard pet={pet} featured />
           <DecisionButtons key={pet.id} petId={pet.id} />
         </>
+      ) : canExploreAgain ? (
+        <ExploreAgain />
+      ) : allSaved ? (
+        <section>
+          <h2>You’ve saved all available pets</h2>
+          <Link className={styles.navLink} href="/matches">View Matches</Link>
+        </section>
       ) : (
         <p>No pets are available yet.</p>
       )}
