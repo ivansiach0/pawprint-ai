@@ -4,8 +4,8 @@ import { useActionState } from "react";
 import { primary } from "../auth.css";
 import { exploreAgain } from "./actions";
 
-export function ExploreAgain() {
-  const [error, submit, pending] = useActionState(exploreAgain, "");
+export function ExploreAgain({ round }: { round: number }) {
+  const [error, submit, pending] = useActionState(exploreAgain.bind(null, round), "");
 
   return (
     <section>

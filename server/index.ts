@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
-import { and, eq, notExists } from "drizzle-orm";
+import { and, eq, notExists, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import express from "express";
 import * as schema from "./schema";
@@ -32,7 +32,7 @@ app.get("/health", (_request, response) => {
 
 app.all("/api/auth/*action", toNodeHandler(auth));
 
-const { pet, swipeDecision } = schema;
+const { pet, swipeDecision, user } = schema;
 const catalog = express.Router();
 
 catalog.use(["/discover", "/matches"], async (request, response, next) => {
@@ -54,49 +54,76 @@ function decisionsFor(userId: string) {
 
 catalog.get("/discover", async (_request, response) => {
   const userId: string = response.locals.userId;
-  const entries = await db.select({ pet, choice: swipeDecision.choice }).from(pet)
+  const entries = await db.select({ pet, choice: swipeDecision.choice, round: user.discoverRound }).from(pet)
+    .innerJoin(user, eq(user.id, userId))
     .leftJoin(swipeDecision, decisionsFor(userId)).orderBy(pet.id);
   const nextPet = entries.find((entry) => entry.choice === null)?.pet ?? null;
   const hasPassedPets = entries.some((entry) => entry.choice === "pass");
 
   response.json({
     pet: nextPet,
+    round: entries[0]?.round ?? 0,
     canExploreAgain: nextPet === null && hasPassedPets,
     allSaved: entries.length > 0 && nextPet === null && !hasPassedPets,
   });
 });
 
-catalog.post("/discover/explore-again", async (_request, response) => {
+catalog.post("/discover/explore-again", express.json(), async (request, response) => {
   const userId: string = response.locals.userId;
-  const decided = db.select({ petId: swipeDecision.petId }).from(swipeDecision)
-    .where(decisionsFor(userId));
-  const undecided = db.select({ id: pet.id }).from(pet).where(notExists(decided));
+  const { round } = request.body ?? {};
+  if (!Number.isSafeInteger(round) || round < 0) {
+    response.sendStatus(400);
+    return;
+  }
 
-  await db.delete(swipeDecision).where(and(
-    eq(swipeDecision.userId, userId),
-    eq(swipeDecision.choice, "pass"),
-    notExists(undecided),
-  ));
+  await db.transaction(async (transaction) => {
+    const [account] = await transaction.select({ round: user.discoverRound }).from(user)
+      .where(eq(user.id, userId)).for("update");
+    if (account?.round !== round) return;
+
+    const decided = transaction.select({ petId: swipeDecision.petId }).from(swipeDecision)
+      .where(decisionsFor(userId));
+    const undecided = transaction.select({ id: pet.id }).from(pet).where(notExists(decided));
+    const reset = await transaction.delete(swipeDecision).where(and(
+      eq(swipeDecision.userId, userId),
+      eq(swipeDecision.choice, "pass"),
+      notExists(undecided),
+    )).returning({ petId: swipeDecision.petId });
+
+    if (reset.length > 0) {
+      await transaction.update(user).set({ discoverRound: sql`${user.discoverRound} + 1` })
+        .where(eq(user.id, userId));
+    }
+  });
   response.sendStatus(204);
 });
 
 catalog.post("/discover/decisions", express.json(), async (request, response) => {
-  const { petId, choice } = request.body ?? {};
+  const { petId, choice, round } = request.body ?? {};
   if (!Number.isSafeInteger(petId) || petId < 1 || petId > 2147483647
+    || !Number.isSafeInteger(round) || round < 0
     || (choice !== "pass" && choice !== "save")) {
     response.status(400).json({ error: "Choose a valid pet and decision." });
     return;
   }
 
-  const [selectedPet] = await db.select({ id: pet.id }).from(pet).where(eq(pet.id, petId));
-  if (!selectedPet) {
-    response.status(404).json({ error: "Pet not found." });
-    return;
-  }
-
   const userId: string = response.locals.userId;
-  await db.insert(swipeDecision).values({ userId, petId, choice }).onConflictDoNothing();
-  response.sendStatus(204);
+  const status = await db.transaction(async (transaction) => {
+    const [account] = await transaction.select({ round: user.discoverRound }).from(user)
+      .where(eq(user.id, userId)).for("update");
+    if (account?.round !== round) return 409;
+
+    const [selectedPet] = await transaction.select({ id: pet.id }).from(pet).where(eq(pet.id, petId));
+    if (!selectedPet) return 404;
+
+    const [stored] = await transaction.select({ choice: swipeDecision.choice }).from(swipeDecision)
+      .where(and(eq(swipeDecision.userId, userId), eq(swipeDecision.petId, petId)));
+    if (stored) return stored.choice === choice ? 204 : 409;
+
+    await transaction.insert(swipeDecision).values({ userId, petId, choice });
+    return 204;
+  });
+  response.sendStatus(status);
 });
 
 catalog.get("/matches", async (_request, response) => {

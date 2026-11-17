@@ -16,16 +16,17 @@ const serverReady = () => false;
 
 const swipeThreshold = 72;
 
-export function DiscoverDecision({ petId, children }: { petId: number; children: ReactNode }) {
+export function DiscoverDecision({ petId, round, children }: { petId: number; round: number; children: ReactNode }) {
   const router = useRouter();
   const [retryChoice, setRetryChoice] = useState<Choice | null>(null);
+  const [stale, setStale] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, startTransition] = useTransition();
   const hydrated = useSyncExternalStore(subscribeToHydration, clientReady, serverReady);
   const disabled = !hydrated || submitting || refreshing;
 
-  const canDecide = !disabled && !retryChoice;
+  const canDecide = !disabled && !retryChoice && !stale;
   const drag = useRef<{ id: number; x: number; y: number } | null>(null);
   const [offset, setOffset] = useState(0);
 
@@ -36,7 +37,7 @@ export function DiscoverDecision({ petId, children }: { petId: number; children:
     const response = await fetch("/api/discover/decisions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ petId, choice }),
+      body: JSON.stringify({ petId, choice, round }),
       signal: AbortSignal.timeout(10_000),
     }).catch(() => null);
 
@@ -50,6 +51,12 @@ export function DiscoverDecision({ petId, children }: { petId: number; children:
     if (response?.ok) {
       setRetryChoice(null);
       startTransition(() => router.refresh());
+      return;
+    }
+
+    if (response?.status === 409) {
+      setStale(true);
+      setError("Your Discover progress changed. Refresh to continue.");
       return;
     }
 
@@ -123,7 +130,11 @@ export function DiscoverDecision({ petId, children }: { petId: number; children:
         {children}
       </div>
       <div className={styles.actions}>
-        {retryChoice ? (
+        {stale ? (
+          <button className={primary} type="button" disabled={disabled} onClick={() => window.location.reload()}>
+            Refresh Discover
+          </button>
+        ) : retryChoice ? (
           <button className={primary} type="button" disabled={disabled} onClick={() => submit(retryChoice)}>
             Try again
           </button>

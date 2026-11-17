@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: pawprint-ai-web
+    runtime: node
+    branch: master
+    region: ohio
+    plan: 0.5c-512mb
+    autoDeployTrigger: "off"
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: PAWPRINT_API_HOSTPORT
+        fromService:
+          type: pserv
+          name: pawprint-ai-api
+          property: hostport
+
+  - type: pserv
+    name: pawprint-ai-api
+    runtime: node
+    branch: master
+    region: ohio
+    plan: 0.5c-512mb
+    autoDeployTrigger: "off"
+    buildCommand: npm ci --include=dev
+    preDeployCommand: npm run db:migrate && npm run db:seed
+    startCommand: npm run start:api
+    envVars:
+      - key: API_HOST
+        value: "0.0.0.0"
+      - key: BETTER_AUTH_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false

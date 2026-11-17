@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { privateApiOrigin, publicOrigin } from "../../../deployment-env";
 
 const authPaths = new Map([
   ["sign-in", "/api/auth/sign-in/email"],
@@ -16,13 +17,13 @@ export async function POST(
     return new Response(null, { status: 404 });
   }
 
-  const apiOrigin = process.env.PAWPRINT_API_ORIGIN;
+  const apiOrigin = privateApiOrigin();
   if (!apiOrigin) {
     return Response.json({ message: "Authentication is unavailable." }, { status: 503 });
   }
 
   const origin = request.headers.get("origin");
-  if (!origin || origin !== process.env.BETTER_AUTH_URL) {
+  if (!origin || origin !== publicOrigin()) {
     return Response.json({ message: "Invalid request origin." }, { status: 403 });
   }
 
