@@ -31,5 +31,5 @@ Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in 
   Verify both directions across inputs and confirm a failed gesture can be retried.
 
 - [ ] **08 — Review and deploy the MVP**  
-  Depends on 05 and 07. Review the diff against SPEC.md and project standards. Document the build, migration, seed, and start commands. After release approval, deploy from GitHub to Render with public Next.js, private Express, and Render PostgreSQL.  
-  Verify registration, sign-in, Pass, Save, and Matches at the production URL, and confirm Express is reachable only privately.
+  Depends on 05 and 07. Review the diff against SPEC.md and project standards. Document the build, migration, seed, and start commands. After release approval, deploy from GitHub to Render with Next.js and Express on public Free web services, and the existing Render PostgreSQL database. Run migrations and the idempotent seed before starting Express.\
+  Verify registration, sign-in, Pass, Save, and Matches at the public Next.js URL, confirm the BFF uses the Express HTTPS URL, and confirm direct requests to protected Express endpoints without a session return 401.
