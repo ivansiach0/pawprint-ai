@@ -4,7 +4,7 @@ services:
     runtime: node
     branch: master
     region: ohio
-    plan: 0.5c-512mb
+    plan: 0.1c-512mb
     autoDeployTrigger: "off"
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
@@ -21,7 +21,7 @@ services:
     runtime: node
     branch: master
     region: ohio
-    plan: 0.5c-512mb
+    plan: 0.1c-512mb
     autoDeployTrigger: "off"
     buildCommand: npm ci --include=dev
     preDeployCommand: npm run db:migrate && npm run db:seed
