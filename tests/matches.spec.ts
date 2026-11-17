@@ -25,6 +25,10 @@ test("pass and save persist without affecting another account", async ({ page, b
   await expect(pass).toBeVisible();
   await pass.click();
   await expect(page.getByRole("heading", { name: "Milo" })).toBeVisible();
+  const conflictingSave = await page.request.post("http://127.0.0.1:3101/api/discover/decisions", {
+    data: { petId: 1, round: 0, choice: "save" },
+  });
+  expect(conflictingSave.status()).toBe(409);
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByRole("heading", { name: "Bella" })).toBeVisible();
   await page.reload();
@@ -60,7 +64,7 @@ test("Explore again restores passed pets in order and keeps saved pets", async (
   // Prepare the end of the round through the authenticated Express API.
   for (let petId = 1; petId <= 67; petId += 1) {
     const response = await page.request.post("http://127.0.0.1:3101/api/discover/decisions", {
-      data: { petId, choice: petId === 1 || petId === 3 ? "pass" : "save" },
+      data: { petId, round: 0, choice: petId === 1 || petId === 3 ? "pass" : "save" },
     });
     expect(response.status()).toBe(204);
   }
@@ -69,6 +73,10 @@ test("Explore again restores passed pets in order and keeps saved pets", async (
   await expect(page.getByText("You’ve seen all the pets", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Explore again" }).click();
   await expect(page.getByRole("heading", { name: "Luna" })).toBeVisible();
+  const oldPass = await page.request.post("http://127.0.0.1:3101/api/discover/decisions", {
+    data: { petId: 1, round: 0, choice: "pass" },
+  });
+  expect(oldPass.status()).toBe(409);
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Bella" })).toBeVisible();
   await page.getByRole("button", { name: "Save", exact: true }).click();

@@ -12,8 +12,9 @@ export default async function DiscoverPage() {
   if (response.status === 401) redirect("/sign-in");
   if (!response.ok) throw new Error("Discover is unavailable.");
 
-  const { pet, canExploreAgain, allSaved } = (await response.json()) as {
+  const { pet, round, canExploreAgain, allSaved } = (await response.json()) as {
     pet: Pet | null;
+    round: number;
     canExploreAgain: boolean;
     allSaved: boolean;
   };
@@ -28,11 +29,11 @@ export default async function DiscoverPage() {
         </div>
       </div>
       {pet ? (
-        <DiscoverDecision key={pet.id} petId={pet.id}>
+        <DiscoverDecision key={`${round}:${pet.id}`} petId={pet.id} round={round}>
           <PetCard pet={pet} featured />
         </DiscoverDecision>
       ) : canExploreAgain ? (
-        <ExploreAgain />
+        <ExploreAgain round={round} />
       ) : allSaved ? (
         <section>
           <h2>You’ve saved all available pets</h2>
