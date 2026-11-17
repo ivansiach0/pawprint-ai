@@ -65,3 +65,11 @@ export const swipeDecision = pgTable("swipe_decision", {
   petId: integer("pet_id").notNull().references(() => pet.id),
   choice: swipeChoice("choice").notNull(),
 }, (table) => [primaryKey({ columns: [table.userId, table.petId] })]);
+
+// Retained across round resets so old removals cannot target a later save.
+export const matchSave = pgTable("match_save", {
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  petId: integer("pet_id").notNull().references(() => pet.id),
+  saveVersion: text("save_version").notNull(),
+  removed: boolean("removed").notNull().default(false),
+}, (table) => [primaryKey({ columns: [table.userId, table.petId] })]);

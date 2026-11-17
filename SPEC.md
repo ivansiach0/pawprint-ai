@@ -77,6 +77,8 @@ Use the public browser flow to verify registration, session cookies through the 
 
 Removing pets from Matches, Google sign-in, and password recovery are candidates for later features. Pet detail pages and adoption applications are outside the MVP.
 
+The approved **Remove from Matches** extension is specified in [Remove from Matches](docs/features/remove-from-matches.md). The extension is implemented and owner-approved; production release is pending. The MVP behavior above remains the original baseline.
+
 ## Project workflow
 
 ```mermaid

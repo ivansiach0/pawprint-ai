@@ -33,3 +33,9 @@ Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in 
 - [ ] **08 — Review and deploy the MVP**  
   Depends on 05 and 07. Review the diff against SPEC.md and project standards. Document the build, migration, seed, and start commands. After release approval, deploy from GitHub to Render with Next.js and Express on public Free web services, and the existing Render PostgreSQL database. Run migrations and the idempotent seed before starting Express.\
   Verify registration, sign-in, Pass, Save, and Matches at the public Next.js URL, confirm the BFF uses the Express HTTPS URL, and confirm direct requests to protected Express endpoints without a session return 401.
+
+## Post-MVP features
+
+- [x] **09 — Remove a pet from Matches safely**\
+  Blocked by none; uses the existing MVP. Implement the approved [feature specification](docs/features/remove-from-matches.md) as one complete slice, including confirmation, safe retries, later-save protection, persistence, and browser/API tests.\
+  Detailed scope and acceptance checks: [Feature ticket 01](.scratch/remove-from-matches/issues/01-remove-a-pet-from-matches-safely.md). Implemented, verified, and approved by the owner. Production release is pending.

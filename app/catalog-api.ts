@@ -3,10 +3,11 @@ import type { pet } from "../server/schema";
 import { privateApiOrigin } from "./deployment-env";
 
 export type Pet = typeof pet.$inferSelect;
+export type SavedPet = Pet & { saveVersion: string };
 
 export async function fetchCatalog(
-  path: "/api/discover" | "/api/discover/decisions" | "/api/discover/explore-again" | "/api/matches",
-  body?: { round: number; petId: number; choice: "pass" | "save" } | { round: number },
+  path: "/api/discover" | "/api/discover/decisions" | "/api/discover/explore-again" | "/api/matches" | "/api/matches/remove",
+  body?: { round: number; petId: number; choice: "pass" | "save" } | { round: number } | { petId: number; saveVersion: string },
 ) {
   const cookie = (await headers()).get("cookie");
   const apiOrigin = privateApiOrigin();
