@@ -55,6 +55,22 @@ The landing photo comes from the supplied [pet catalog](https://pets-images.dev-
 
 Playwright saves screenshots for failed tests in `test-results/`.
 
+## Remove from Matches: local review
+
+Use a development database and apply the new migration with `npm run db:migrate` before starting Express and Next.js. The migration preserves existing Matches and gives each save an identity; keep the API and BFF on the same release. Do not apply this migration to the deployed database until release approval.
+
+1. Sign in, save Luna and Milo, and open Matches.
+2. Select **Remove from Matches** on Luna. Verify the dialog names Luna and initially focuses **Cancel**. Cancel or press Escape: Luna remains and focus returns to the removal button.
+3. Open the dialog again and confirm **Remove**. The card stays visible with **Removing…** until confirmation, then disappears. Milo remains. Reload to verify persistence.
+4. Remove Milo and verify **No matches yet** and **Go to Discover**. Removed pets stay excluded until the next **Explore again** round, when they return in catalog order and can be saved again.
+5. With Matches open in two tabs, remove a pet in one tab, finish the round, start another round, and save it again. Attempt removal in the old tab: the newer save remains, and **Refresh Matches** loads the current gallery.
+
+Run the focused automated tests against a disposable test database for failures before persistence, a lost successful response, stale retries after a round reset, account isolation, and concurrent removal/round transitions:
+
+```sh
+TEST_DATABASE_URL=postgresql://pawprint:pawprint_local@127.0.0.1:55432/pawprint_test npm test -- tests/remove-matches.spec.ts --workers=1
+```
+
 ## Render deployment
 
 The [Render Blueprint](render.yaml) defines two public Free web services in Ohio: Next.js (UI and BFF) and Express (API). They use your existing Render PostgreSQL database in the same workspace and region. Browser application requests go through Next.js, which calls Express over HTTPS. Express validates sessions for protected endpoints.

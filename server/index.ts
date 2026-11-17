@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
@@ -32,7 +33,7 @@ app.get("/health", (_request, response) => {
 
 app.all("/api/auth/*action", toNodeHandler(auth));
 
-const { pet, swipeDecision, user } = schema;
+const { pet, swipeDecision, user, matchSave } = schema;
 const catalog = express.Router();
 
 catalog.use(["/discover", "/matches"], async (request, response, next) => {
@@ -121,6 +122,39 @@ catalog.post("/discover/decisions", express.json(), async (request, response) =>
     if (stored) return stored.choice === choice ? 204 : 409;
 
     await transaction.insert(swipeDecision).values({ userId, petId, choice });
+    if (choice === "save") {
+      const saveVersion = randomUUID();
+      await transaction.insert(matchSave).values({ userId, petId, saveVersion })
+        .onConflictDoUpdate({
+          target: [matchSave.userId, matchSave.petId],
+          set: { saveVersion, removed: false },
+        });
+    }
+    return 204;
+  });
+  response.sendStatus(status);
+});
+
+catalog.post("/matches/remove", express.json(), async (request, response) => {
+  const { petId, saveVersion } = request.body ?? {};
+  if (!Number.isSafeInteger(petId) || petId < 1 || petId > 2147483647
+    || typeof saveVersion !== "string"
+    || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(saveVersion)) {
+    response.sendStatus(400);
+    return;
+  }
+
+  const userId: string = response.locals.userId;
+  const status = await db.transaction(async (transaction) => {
+    await transaction.select({ id: user.id }).from(user).where(eq(user.id, userId)).for("update");
+    const target = and(eq(matchSave.userId, userId), eq(matchSave.petId, petId));
+    const [saved] = await transaction.select().from(matchSave).where(target);
+    if (!saved || saved.saveVersion !== saveVersion) return 409;
+    if (saved.removed) return 204;
+
+    await transaction.update(swipeDecision).set({ choice: "pass" })
+      .where(and(eq(swipeDecision.userId, userId), eq(swipeDecision.petId, petId)));
+    await transaction.update(matchSave).set({ removed: true }).where(target);
     return 204;
   });
   response.sendStatus(status);
@@ -128,11 +162,12 @@ catalog.post("/discover/decisions", express.json(), async (request, response) =>
 
 catalog.get("/matches", async (_request, response) => {
   const userId: string = response.locals.userId;
-  const saved = await db.select({ pet }).from(swipeDecision)
+  const saved = await db.select({ pet, saveVersion: matchSave.saveVersion }).from(swipeDecision)
     .innerJoin(pet, eq(swipeDecision.petId, pet.id))
+    .innerJoin(matchSave, and(eq(matchSave.userId, swipeDecision.userId), eq(matchSave.petId, pet.id)))
     .where(and(eq(swipeDecision.userId, userId), eq(swipeDecision.choice, "save")))
     .orderBy(pet.id);
-  response.json({ pets: saved.map((entry) => entry.pet) });
+  response.json({ pets: saved.map((entry) => ({ ...entry.pet, saveVersion: entry.saveVersion })) });
 });
 
 app.use("/api", catalog);
