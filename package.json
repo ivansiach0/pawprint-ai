@@ -15,7 +15,8 @@
     "dev:api": "node --env-file-if-exists=.env.local --import tsx server/index.ts",
     "db:migrate": "node --env-file-if-exists=.env.local node_modules/drizzle-kit/bin.cjs migrate",
     "db:seed": "node --env-file-if-exists=.env.local --import tsx server/seed.ts",
-    "start:api": "node --import tsx server/index.ts"
+    "start:api": "node --import tsx server/index.ts",
+    "start:api:render": "npm run db:migrate && npm run db:seed && npm run start:api"
   },
   "dependencies": {
     "@vanilla-extract/css": "^1.21.3",

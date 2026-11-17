@@ -26,20 +26,20 @@ Show a private gallery of saved pets. Each card shows its photo, name, species, 
 
 ## Architecture and delivery
 
-Next.js App Router serves the UI and acts as the public BFF. Use TypeScript, vanilla-extract, Radix UI Primitives where appropriate, and ESLint. The BFF forwards requests to Express over Render's private network and relays session cookies. Express hosts Better Auth, owns catalog and swipe logic, and accesses Render PostgreSQL through Drizzle.
+Next.js App Router serves the UI and acts as the public BFF. Use TypeScript, vanilla-extract, Radix UI Primitives where appropriate, and ESLint. The BFF forwards requests to Express over HTTPS and relays session cookies. Express hosts Better Auth, owns catalog and swipe logic, and accesses Render PostgreSQL through Drizzle.
 
-GitHub is the deployment source for both Render services. Next.js is the only public service. The UI and project files are in English, including filenames, documentation, tickets, code comments, test descriptions, and diagram labels.
+GitHub is the deployment source for both Render services. Next.js and Express use public Render web services on the Free compute plan. Browser application requests go through the Next.js BFF; protected Express endpoints validate sessions even when called directly. The UI and project files are in English, including filenames, documentation, tickets, code comments, test descriptions, and diagram labels.
 
 ```mermaid
 flowchart LR
     Browser["Browser<br/>Landing · Discover · Matches"]
     Next["Next.js App Router<br/>Public UI and BFF"]
-    Express["Private Express API<br/>Better Auth · Discover · Matches"]
+    Express["Public Express API<br/>Better Auth · Discover · Matches"]
     DB[("Render PostgreSQL")]
     GitHub["GitHub"]
 
     Browser <-->|"HTTPS · Session cookie"| Next
-    Next <-->|"Render private network"| Express
+    Next <-->|"HTTPS"| Express
     Express <-->|"Drizzle"| DB
     GitHub -->|"Deploy"| Next
     GitHub -->|"Deploy"| Express
