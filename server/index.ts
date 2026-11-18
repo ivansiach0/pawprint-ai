@@ -6,6 +6,7 @@ import { and, eq, notExists, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import express from "express";
 import * as schema from "./schema";
+import { passwordPolicy, passwordRecoveryRouter } from "./password-recovery";
 
 const { DATABASE_URL, BETTER_AUTH_URL, BETTER_AUTH_SECRET } = process.env;
 
@@ -21,8 +22,10 @@ const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,
+    transaction: true,
   }),
-  emailAndPassword: { enabled: true },
+  emailAndPassword: { enabled: true, ...passwordPolicy },
+  disabledPaths: ["/request-password-reset", "/reset-password"],
 });
 
 const app = express();
@@ -31,6 +34,7 @@ app.get("/health", (_request, response) => {
   response.sendStatus(200);
 });
 
+app.use("/api/auth", passwordRecoveryRouter(db));
 app.all("/api/auth/*action", toNodeHandler(auth));
 
 const { pet, swipeDecision, user, matchSave } = schema;

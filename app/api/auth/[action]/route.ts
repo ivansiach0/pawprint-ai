@@ -1,10 +1,12 @@
 import type { NextRequest } from "next/server";
 import { privateApiOrigin, publicOrigin } from "../../../deployment-env";
+import { localRecoveryEnabled, recoveryActions } from "../../../../shared/local-recovery";
 
 const authPaths = new Map([
   ["sign-in", "/api/auth/sign-in/email"],
   ["sign-up", "/api/auth/sign-up/email"],
   ["sign-out", "/api/auth/sign-out"],
+  ...recoveryActions.map((action) => [action, `/api/auth/${action}`] as const),
 ]);
 
 export async function POST(
@@ -12,6 +14,9 @@ export async function POST(
   { params }: { params: Promise<{ action: string }> },
 ) {
   const { action } = await params;
+  if (recoveryActions.includes(action) && !localRecoveryEnabled()) {
+    return new Response(null, { status: 404 });
+  }
   const authPath = authPaths.get(action);
   if (!authPath) {
     return new Response(null, { status: 404 });

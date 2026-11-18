@@ -79,6 +79,8 @@ Removing pets from Matches, Google sign-in, and password recovery are candidates
 
 The approved **Remove from Matches** extension is specified in [Remove from Matches](docs/features/remove-from-matches.md). The extension is implemented and owner-approved; production release is pending. The MVP behavior above remains the original baseline.
 
+The approved local-only **Password Recovery** extension is specified in [Password Recovery](docs/features/password-recovery.md) and scheduled as approved tickets 10 and 11. Ticket 10 is implemented and owner-approved locally; ticket 11 is pending. Real email delivery and production activation are deferred to a later feature.
+
 ## Project workflow
 
 ```mermaid
