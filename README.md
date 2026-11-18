@@ -39,14 +39,18 @@ The seed adds 67 fixed profiles and can be run again without duplicating pets. D
 
 ## Verification
 
-Use a separate disposable database for automated tests. With the Docker container above, create it once with `docker exec pawprint-dev-db createdb -U pawprint pawprint_test`. The test runner applies migrations, seeds pets, and starts both services on loopback.
+Use a separate disposable database for automated tests. With the Docker container above, create it once with `docker exec pawprint-dev-db createdb -U pawprint pawprint_test`. The test runner applies migrations, seeds pets, and starts the app services on loopback, including a test-only API with controlled time for reset-link expiry. Recovery tests also require a dedicated Mailpit inbox.
 
 ```sh
+docker run --rm -d --name pawprint-test-mail \
+  -p 127.0.0.1:8026:8025 axllent/mailpit:v1.27.4
 npx playwright install chromium
 TEST_DATABASE_URL=postgresql://pawprint:pawprint_local@127.0.0.1:55432/pawprint_test npm test -- --workers=1
 npm run lint
 npm run typecheck
 npm run build
+TEST_DATABASE_URL=postgresql://pawprint:pawprint_local@127.0.0.1:55432/pawprint_test npm test -- --config=playwright.production.config.ts --workers=1
+docker stop pawprint-test-mail
 ```
 
 The browser tests cover the public homepage, registration, session persistence, first pet after reload, sign-in, and sign-out in desktop and mobile Chromium profiles. They also check that Express rejects a direct request to Discover without a session.
@@ -70,6 +74,43 @@ Run the focused automated tests against a disposable test database for failures 
 ```sh
 TEST_DATABASE_URL=postgresql://pawprint:pawprint_local@127.0.0.1:55432/pawprint_test npm test -- tests/remove-matches.spec.ts --workers=1
 ```
+
+## Password recovery: local review (ticket 10)
+
+Recovery is opt-in locally and always disabled when `NODE_ENV=production` or Render's `RENDER` environment marker is present. This phase captures messages in Mailpit; it does not send real emails. Pending/retry refinements and the unavailable-inbox experience belong to ticket 11.
+
+Start the local inbox:
+
+```sh
+docker compose -f compose.mailpit.yaml up -d
+```
+
+Use a development `DATABASE_URL`. Add these settings to `.env.local`, using the same browser-facing origin as your existing `BETTER_AUTH_URL`:
+
+```dotenv
+PAWPRINT_LOCAL_RECOVERY=true
+MAILPIT_ORIGIN=http://127.0.0.1:8025
+```
+
+Apply the new migration locally with `npm run db:migrate`, then restart both `npm run dev:api` and `npm run dev`. Do not apply it to the Render database during this local-only review.
+
+1. Create or use an existing account, save a pet, and note your next Discover pet.
+2. Open Sign in, select **Forgot password?**, enter the account email, and select **Send reset link**. The acknowledgment is also shown for unknown addresses, which receive no message.
+3. Open [Mailpit](http://localhost:8025), find **Reset your Pawprint password**, and open its link. You do not need a domain, external mail account, or provider key.
+4. Try mismatched passwords, then correct them and complete the reset. The existing policy is 8–128 characters. You return to Sign in; the new password works and the old one fails. Previous sessions are invalid, while Matches and Discover progress remain unchanged.
+5. Request two links and verify only the newest works. Reopening a used link shows **This reset link is invalid or has expired** with **Request a new link**. Merely opening a valid form does not consume the link.
+
+Links expire after 30 minutes. Their token is in the URL fragment, which the browser sends in request bodies rather than access-log URLs. The database retains only a SHA-256 token digest. Password hashing uses Better Auth's public password hasher. One reset record per account, an account lock, and a database transaction enforce latest-link checks, consumption, password replacement, and session revocation together. Native Better Auth reset routes are blocked so they cannot bypass this policy.
+
+The dedicated test inbox defaults to port 8026 to keep it separate from manual review on 8025. Override `TEST_MAILPIT_ORIGIN` when needed. The production verification command above uses the local production build with recovery explicitly opted in and confirms that it still remains disabled; it uses only the disposable test database.
+
+To stop the manual-review inbox:
+
+```sh
+docker compose -f compose.mailpit.yaml down
+```
+
+Do not add these local settings or a Mailpit service to Render. Real delivery and production activation require a later approved feature.
 
 ## Render deployment
 

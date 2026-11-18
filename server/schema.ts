@@ -73,3 +73,9 @@ export const matchSave = pgTable("match_save", {
   saveVersion: text("save_version").notNull(),
   removed: boolean("removed").notNull().default(false),
 }, (table) => [primaryKey({ columns: [table.userId, table.petId] })]);
+
+export const passwordReset = pgTable("password_reset", {
+  userId: text("user_id").primaryKey().references(() => user.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: date("expires_at").notNull(),
+});

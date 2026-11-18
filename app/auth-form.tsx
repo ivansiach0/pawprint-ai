@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Label } from "radix-ui";
 import * as styles from "./auth.css";
+import { useHydrated } from "./use-hydrated";
 
-const subscribeToHydration = () => () => {};
-const clientReady = () => true;
-const serverReady = () => false;
-
-export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
+export function AuthForm({ mode, recoveryEnabled = false, passwordReset = false }: {
+  mode: "sign-in" | "sign-up";
+  recoveryEnabled?: boolean;
+  passwordReset?: boolean;
+}) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
-  const hydrated = useSyncExternalStore(subscribeToHydration, clientReady, serverReady);
+  const hydrated = useHydrated();
   const registering = mode === "sign-up";
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -50,6 +51,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
     <main className={styles.panel}>
       <Link href="/">Pawprint</Link>
       <h1>{registering ? "Create an account" : "Sign in"}</h1>
+      {passwordReset && <p role="status">Password updated. Sign in with your new password.</p>}
       <form className={styles.form} method="post" onSubmit={submit}>
         {registering && (
           <div className={styles.field}>
@@ -72,6 +74,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
           {registering ? "Create account" : "Sign in"}
         </button>
       </form>
+      {!registering && recoveryEnabled && <p><Link href="/forgot-password">Forgot password?</Link></p>}
       <p>
         {registering ? "Already have an account? " : "New to Pawprint? "}
         <Link href={registering ? "/sign-in" : "/sign-up"}>

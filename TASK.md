@@ -39,3 +39,11 @@ Use [SPEC.md](SPEC.md) as the source of truth and follow the ticket workflow in 
 - [x] **09 — Remove a pet from Matches safely**\
   Blocked by none; uses the existing MVP. Implement the approved [feature specification](docs/features/remove-from-matches.md) as one complete slice, including confirmation, safe retries, later-save protection, persistence, and browser/API tests.\
   Detailed scope and acceptance checks: [Feature ticket 01](.scratch/remove-from-matches/issues/01-remove-a-pet-from-matches-safely.md). Implemented, verified, and approved by the owner. Production release is pending.
+
+- [x] **10 — Complete local password recovery**\
+  Blocked by none; uses existing authentication. Implement the approved [Password Recovery specification](docs/features/password-recovery.md) as a complete local flow using Mailpit, latest-link and single-use rules, a 30-minute lifetime, session revocation, and preserved user data. Keep recovery disabled in production from this ticket.\
+  Detailed scope and acceptance checks: [Feature ticket 01](.scratch/password-recovery/issues/01-complete-local-password-recovery.md). Implemented and verified locally; owner-approved for commit and push. Recovery remains disabled in production.
+
+- [ ] **11 — Recover from password recovery failures**\
+  Blocked by 10. Add pending feedback, retryable link requests, uniform Mailpit-unavailable handling, and uncertain password-change guidance. Verify failures and competing operations through the approved browser/BFF, Express, and Mailpit boundaries.\
+  Detailed scope and acceptance checks: [Feature ticket 02](.scratch/password-recovery/issues/02-recover-from-password-recovery-failures.md). Real delivery and production recovery activation remain deferred.
